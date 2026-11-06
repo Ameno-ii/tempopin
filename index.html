@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TempoPin BLE test</title>
+<style>body{font-family:sans-serif;max-width:420px;margin:auto;padding:20px}
+button,input{width:100%;padding:14px;font-size:16px;margin:6px 0;box-sizing:border-box;border-radius:12px;border:1px solid #ccc}
+button{background:#111;color:#fff;border:0}#st{margin:10px 0;color:#666}</style></head><body>
+<h2>TempoPin BLE test</h2>
+<button onclick="connect()">เชื่อมต่อพวงกุญแจ</button>
+<div id="st">ยังไม่เชื่อมต่อ</div>
+<input id="msg" placeholder="พิมพ์ข้อความ (อังกฤษ)" value="Hi from app">
+<button onclick="send()">ส่งไปพวงกุญแจ</button>
+<script>
+const SVC='6e400001-b5a3-f393-e0a9-e50e24dcca9e',RX='6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+let rx=null;const st=t=>document.getElementById('st').textContent=t;
+async function connect(){
+ if(!navigator.bluetooth){st('เบราว์เซอร์นี้ไม่รองรับ ใช้ Chrome บน Android');return}
+ try{
+  const dev=await navigator.bluetooth.requestDevice({filters:[{name:'TempoPin'}],optionalServices:[SVC]});
+  dev.addEventListener('gattserverdisconnected',()=>{rx=null;st('หลุดการเชื่อมต่อ')});
+  const srv=await dev.gatt.connect();
+  rx=await (await srv.getPrimaryService(SVC)).getCharacteristic(RX);
+  st('เชื่อมต่อแล้ว ✓');
+ }catch(e){st('ผิดพลาด: '+e.message)}
+}
+async function send(){
+ if(!rx){st('ยังไม่ได้เชื่อมต่อ');return}
+ try{await rx.writeValue(new TextEncoder().encode(document.getElementById('msg').value));st('ส่งแล้ว ✓')}
+ catch(e){st('ส่งไม่สำเร็จ: '+e.message)}
+}
+</script></body></html>
