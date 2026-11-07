@@ -1,42 +1,319 @@
-<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TempoPin sync test</title>
-<style>body{font-family:sans-serif;max-width:420px;margin:auto;padding:20px}
-button{width:100%;padding:14px;font-size:16px;margin:6px 0;border-radius:12px;border:0;background:#111;color:#fff}
-#st,#bat{margin:10px 0;color:#666}</style></head><body>
-<h2>TempoPin sync test</h2>
-<button onclick="connect()">เชื่อมต่อพวงกุญแจ</button>
-<div id="st">ยังไม่เชื่อมต่อ</div><div id="bat"></div>
-<button onclick="demo()">ส่งตารางทดสอบ</button>
+<!doctype html><html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3f2ee">
+<title>TempoPin</title>
+<style>
+:root{--bg:#f3f2ee;--card:#fff;--ink:#16161a;--mut:#77756f;--line:#e6e4de;--acc:#1d9e75;--p0:#9a988f;--p1:#16161a;--p2:#e8890c;--p3:#d93025}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+.screen{max-width:520px;margin:auto;padding:20px 16px 110px}.hide{display:none!important}
+h1{font-size:28px;margin:6px 0 4px;letter-spacing:-.5px}h2{font-size:18px;margin:0 0 10px}.mut{color:var(--mut);font-size:14px}
+.card{background:var(--card);border-radius:18px;padding:16px;margin:12px 0;border:1px solid var(--line)}
+label{display:block;font-size:13px;color:var(--mut);margin-top:12px}
+input,select,textarea{width:100%;padding:12px;font-size:16px;border:1px solid var(--line);border-radius:12px;background:#fafaf8;margin-top:4px;color:var(--ink);font-family:inherit}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:14px;color:var(--ink)}.check input{width:20px;height:20px;margin:2px 0 0;flex:none}
+.btn{width:100%;padding:14px;border:0;border-radius:14px;background:var(--ink);color:#fff;font-size:16px;font-weight:600;margin-top:14px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{width:auto;padding:9px 14px;font-size:14px;margin:0}
+.logo{font-size:44px;font-weight:800;letter-spacing:-1px;margin:64px 0 6px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.av{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:20px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 10px;border-radius:99px;background:#fcebeb;color:#a32d2d}
+.pill.on{background:#e1f5ee;color:#0f6e56}.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.next{background:var(--ink);color:#fff;border:0}.next .mut{color:#bdbbb4}.big{font-size:46px;font-weight:700;letter-spacing:-1px;line-height:1.1}
+.tag{display:inline-block;margin:10px 6px 0 0;background:#2b2b31;border-radius:10px;padding:6px 10px;font-size:14px}
+.item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}
+.bar{width:4px;align-self:stretch;border-radius:4px;flex:none}
+.tm{font-weight:700;font-size:16px;min-width:64px}.tt{flex:1;min-width:0}.tt small{display:block;color:var(--mut)}
+.ib{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:14px;color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font-size:14px;color:var(--ink)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}.seg button{padding:10px 2px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:14px;color:var(--ink)}
+.seg button.on{color:#fff;border-color:transparent}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}.stat b{display:block;font-size:22px;margin-top:2px}
+.tl{position:relative;padding-left:22px}.tl:before{content:'';position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tlr{position:relative;padding:8px 0}.tlr:before{content:'';position:absolute;left:-21px;top:13px;width:12px;height:12px;border-radius:50%;background:var(--c,var(--ink))}
+.tlr.gap:before{background:#fff;border:2px solid var(--line);width:8px;height:8px}.tlr.gap{color:var(--acc);font-size:14px}
+.tabs{display:flex;gap:6px;background:#e9e7e1;padding:4px;border-radius:12px;margin-top:12px}.tabs button{flex:1;border:0;background:none;padding:8px;border-radius:9px;font-size:14px;color:var(--mut)}.tabs button.on{background:#fff;color:var(--ink);font-weight:600}
+.dnav{display:flex;justify-content:space-between;align-items:center;margin:12px 0}
+.day h3{font-size:15px;margin:16px 0 2px}.day.today h3{color:var(--acc)}
+nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
+nav button{flex:1;border:0;background:none;font-size:12px;color:var(--mut);padding:4px}nav button b{display:block;font-size:22px}nav button.on{color:var(--ink);font-weight:700}
+.msg{max-width:90%;padding:10px 14px;border-radius:16px;margin:8px 0;font-size:15px;line-height:1.5}
+.bot{background:#fff;border:1px solid var(--line)}.me{background:var(--ink);color:#fff;margin-left:auto;width:fit-content}
+.sug{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fafaf8}
+.inbar{position:fixed;left:0;right:0;bottom:66px;padding:10px 12px;background:var(--bg);display:flex;gap:8px;max-width:520px;margin:auto;z-index:4}
+.inbar input{margin:0}.mic{border:1px solid var(--line);background:#fff;border-radius:12px;width:50px;font-size:20px;flex:none}
+.send{border:0;background:var(--ink);color:#fff;border-radius:12px;padding:0 18px;font-size:15px;flex:none}
+.warn{color:#a32d2d;font-size:14px;margin-top:6px}
+.toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:9;white-space:nowrap}.toast.on{opacity:1}
+</style></head><body>
+
+<div id="login" class="screen">
+ <div class="logo">TempoPin</div><div class="mut">พวงกุญแจอัจฉริยะ ช่วยจัดตารางชีวิตให้คุณ</div>
+ <div class="card"><label>อีเมล</label><input id="em" type="email" placeholder="you@email.com">
+ <label>รหัสผ่าน</label><input id="pw" type="password" placeholder="••••••">
+ <button class="btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+ <button class="btn ghost" onclick="doLogin()">สมัครสมาชิก</button></div>
+ <div class="mut" style="text-align:center">MVP demo · ข้อมูลเก็บในเครื่องนี้เท่านั้น</div>
+</div>
+
+<div id="profile" class="screen hide">
+ <h1>โปรไฟล์</h1><div class="mut">ให้ TempoPin รู้จักคุณ เพื่อจัดตารางได้ดีขึ้น</div>
+ <div class="card"><label>ชื่อเล่น</label><input id="p_name">
+ <div class="row2"><div><label>อายุ</label><input id="p_age" type="number"></div><div><label>อาชีพ</label><input id="p_job" placeholder="นักศึกษา"></div></div>
+ <label>การเดินทางหลัก</label><select id="p_mode"><option>รถยนต์</option><option>รถสาธารณะ</option><option>มอเตอร์ไซค์</option><option>เดิน</option></select>
+ <label>เวลาเดินทางปกติ (นาที)</label><input id="p_travel" type="number" value="20">
+ <div class="row2"><div><label>เวลาตื่น</label><input id="p_wake" type="time" value="07:00"></div><div><label>เวลานอน</label><input id="p_sleep" type="time" value="23:30"></div></div>
+ <label class="check"><input type="checkbox" id="c_data"><span>ยินยอมให้ TempoPin เก็บข้อมูลข้างต้นและตารางงาน เพื่อใช้จัดตารางและแจ้งเตือน (จำเป็น)</span></label>
+ <label class="check"><input type="checkbox" id="c_loc"><span>อนุญาตให้ใช้ข้อมูลสถานที่ของงาน เพื่อคำนวณเวลาเดินทาง (ไม่บังคับ)</span></label>
+ <button class="btn" onclick="saveProf()">บันทึก</button>
+ <button class="btn ghost" onclick="logout()">ออกจากระบบ</button></div>
+</div>
+
+<div id="home" class="screen hide">
+ <div class="top"><div><div class="mut" id="today"></div><h1 id="hello">สวัสดี</h1></div>
+  <button class="av" onclick="show('profile')">👤</button></div>
+ <div class="card"><div class="top"><span id="conn" class="pill"><span class="dot"></span>ยังไม่เชื่อมต่อ</span>
+  <button class="btn sm" id="connBtn" onclick="connectBLE()">เชื่อมต่อพวงกุญแจ</button></div>
+  <div class="mut" id="connInfo" style="margin-top:8px"></div></div>
+ <div class="card next" id="nextCard"></div>
+ <div class="card"><h2>วันนี้</h2><div id="todayList"></div></div>
+</div>
+
+<div id="sched" class="screen hide">
+ <h1>ตารางงาน</h1>
+ <div class="tabs"><button id="tDay" onclick="setView('day')">วัน</button><button id="tWeek" onclick="setView('week')">สัปดาห์</button></div>
+ <div class="dnav"><button class="ib" onclick="shift(-1)">‹</button><b id="rangeLbl"></b><button class="ib" onclick="shift(1)">›</button></div>
+ <div id="schedBody"></div>
+</div>
+
+<div id="add" class="screen hide">
+ <h1 id="formTitle">บันทึกงาน</h1><div class="mut">บันทึกแล้วจะซิงก์ไปที่พวงกุญแจอัตโนมัติ</div>
+ <div class="card">
+  <label>ชื่องาน</label><input id="f_title" maxlength="40" placeholder="ประชุม / Meeting" oninput="kcPreview()">
+  <div class="mut" id="kcLbl" style="margin-top:4px"></div>
+  <div class="chips"><button class="chip" onclick="chip('เรียน')">📚 เรียน</button><button class="chip" onclick="chip('ประชุม')">💼 ประชุม</button><button class="chip" onclick="chip('กินข้าว')">🍜 กินข้าว</button><button class="chip" onclick="chip('พัก')">☕ พัก</button><button class="chip" onclick="chip('สอบ')">📝 สอบ</button></div>
+  <label>วันที่</label><input id="f_date" type="date">
+  <div class="row2"><div><label>เริ่ม</label><input id="f_start" type="time"></div><div><label>จบ (ไม่บังคับ)</label><input id="f_end" type="time"></div></div>
+  <label>สถานที่ (ไม่บังคับ)</label><input id="f_loc" placeholder="เช่น ลาดพร้าว 90" oninput="locToggle()">
+  <div id="travelRow" class="hide"><label>เวลาเดินทาง (นาที)</label><input id="f_travel" type="number"></div>
+  <label>ความสำคัญ</label>
+  <div class="seg" id="f_prio"><button onclick="setPrio(0)">ต่ำ</button><button onclick="setPrio(1)">กลาง</button><button onclick="setPrio(2)">สูง</button><button onclick="setPrio(3)">สำคัญมาก</button></div>
+  <label class="check hide" id="prepRow"><input type="checkbox" id="f_prep"><span>เตือนเตรียมตัวล่วงหน้า 30 นาที</span></label>
+  <div class="row2"><div><label>เตือนก่อน (นาที)</label><input id="f_lead" type="number" value="10"></div>
+  <div><label>อากาศ</label><select id="f_w"><option value="Sunny">☀️ แจ่มใส</option><option value="Cloudy">☁️ มีเมฆ</option><option value="Rain">🌧 ฝนตก</option></select></div></div>
+  <label>โน้ต</label><textarea id="f_note" rows="2"></textarea>
+  <button class="btn" onclick="saveForm()">บันทึก</button>
+  <button class="btn ghost hide" id="delBtn" onclick="delTask(editId);show('home')">ลบงานนี้</button></div>
+</div>
+
+<div id="chat" class="screen hide" style="padding-bottom:180px">
+ <h1>ผู้ช่วย</h1><div class="mut">พิมพ์หลายงานพร้อมกันได้ หรือพิมพ์ "แนะนำเวลาพัก"</div>
+ <div id="msgs"></div>
+ <div class="inbar"><button class="mic" onclick="toast('สั่งงานด้วยเสียง เร็วๆ นี้')">🎙</button>
+ <input id="ci" placeholder="พรุ่งนี้ประชุม 9-12 ที่ตึกวิศวะ" onkeydown="if(event.key=='Enter')send()">
+ <button class="send" onclick="send()">ส่ง</button></div>
+</div>
+
+<nav class="hide">
+ <button data-s="home" onclick="show('home')"><b>🏠</b>หน้าแรก</button>
+ <button data-s="sched" onclick="show('sched')"><b>📅</b>ตาราง</button>
+ <button data-s="add" onclick="openForm()"><b>➕</b>บันทึกงาน</button>
+ <button data-s="chat" onclick="show('chat')"><b>💬</b>ผู้ช่วย</button>
+</nav>
+<div class="toast" id="toast"></div>
+
 <script>
-const SVC='6e400001-b5a3-f393-e0a9-e50e24dcca9e',RX='6e400002-b5a3-f393-e0a9-e50e24dcca9e',TX='6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-let rx=null;const st=t=>document.getElementById('st').textContent=t;
-async function connect(){
+const $=s=>document.querySelector(s),pad=n=>('0'+n).slice(-2);
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let tasks=LS.get('tp_tasks',[]),prof=LS.get('tp_prof',{}),view='day',cur=new Date(),editId=null,formPrio=1,pending=[];
+const PN=['ต่ำ','กลาง','สูง','สำคัญมาก'],PC=['var(--p0)','var(--p1)','var(--p2)','var(--p3)'],WI={Sunny:'☀️',Cloudy:'☁️',Rain:'🌧'};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ds=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const toD=(date,hm)=>{const[y,m,d]=date.split('-').map(Number),[h,mi]=hm.split(':').map(Number);return new Date(y,m-1,d,h,mi)};
+const ep=d=>Math.floor(d.getTime()/1000);
+const toMin=hm=>{const a=hm.split(':');return +a[0]*60+ +a[1]};
+const fmt=m=>{m=((m%1440)+1440)%1440;return pad(Math.floor(m/60))+':'+pad(m%60)};
+const dur=m=>m>=60?Math.floor(m/60)+' ชม.'+(m%60?' '+m%60+' น.':''):m+' นาที';
+const endMin=t=>t.end?toMin(t.end)+(toMin(t.end)<=toMin(t.start)?1440:0):toMin(t.start)+60;
+const endD=t=>new Date(toD(t.date,t.start).getTime()+(endMin(t)-toMin(t.start))*60000);
+const trv=t=>t.loc?(+t.travel||0):0;
+const sorted=l=>l.slice().sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+const dayLbl=date=>toD(date,'00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800)}
+function save(){LS.set('tp_tasks',tasks);queueSync();renderAll()}
+
+const TH=[['ประชุม','Meeting'],['เรียน','Class'],['สอบ','Exam'],['ส่งงาน','Deadline'],['การบ้าน','Homework'],['กินข้าว','Lunch'],['อาหาร','Meal'],['ข้าว','Meal'],
+['พัก','Break'],['ออกกำลัง','Workout'],['วิ่ง','Running'],['ยิม','Gym'],['ซื้อของ','Shopping'],['นัดเพื่อน','Friends'],['นัด','Appointment'],['หมอ','Doctor'],
+['ทำงาน','Work'],['อ่านหนังสือ','Study'],['ติว','Tutoring'],['สัมภาษณ์','Interview'],['พรีเซนต์','Present'],['นอน','Sleep']];
+function toEn(s){s=(s||'').trim();if(/^[\x20-\x7E]+$/.test(s))return s;for(const[th,en]of TH)if(s.includes(th))return en;return null}
+const kc=t=>((toEn(t.title)||'Task').replace(/[^\x20-\x7E]|\|/g,'').trim().slice(0,16))||'Task';
+
+// ---------- การแจ้งเตือน 4 รอบ ----------
+function alertsOf(t){
+ const s=ep(toD(t.date,t.start)),lead=(+t.lead||0)*60,tr=trv(t)*60;
+ const a1=tr?s-tr-lead:0, a2=t.prio>=1&&lead?s-lead:0, a3=s;
+ const a0=(t.prio==3||(t.prio==2&&t.prep))?(a1||a2||s)-1800:0;
+ return[a0,a1,a2,a3];
+}
+function buildLines(){
+ const now=Math.floor(Date.now()/1000),tz=-new Date().getTimezoneOffset()*60,from=ep(toD(ds(new Date()),'00:00'));
+ const l=['T|'+now+'|'+tz,'C'];
+ sorted(tasks).filter(t=>{const s=ep(toD(t.date,t.start));return s>=from&&s<now+86400}).slice(0,20).forEach(t=>{
+  const s=ep(toD(t.date,t.start)),e=t.end?ep(endD(t)):0,a=alertsOf(t);
+  l.push(['A',s,e,t.prio,trv(t),t.w,a[0],a[1],a[2],a[3],kc(t)].join('|'));
+ });
+ l.push('D');return l;
+}
+
+// ---------- BLE ----------
+const SVC='6e400001-b5a3-f393-e0a9-e50e24dcca9e',RXU='6e400002-b5a3-f393-e0a9-e50e24dcca9e',TXU='6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+let dev=null,rx=null,bat=null,lastSync=null,syncTimer=null,busy=Promise.resolve();
+async function connectBLE(){
+ if(rx){syncNow();return}
+ if(!navigator.bluetooth){toast('ต้องใช้ Chrome บน Android');return}
  try{
-  const dev=await navigator.bluetooth.requestDevice({filters:[{name:'TempoPin'}],optionalServices:[SVC]});
-  dev.addEventListener('gattserverdisconnected',()=>{rx=null;st('หลุดการเชื่อมต่อ')});
-  const svc=await (await dev.gatt.connect()).getPrimaryService(SVC);
-  rx=await svc.getCharacteristic(RX);
-  const tx=await svc.getCharacteristic(TX);
-  await tx.startNotifications();
-  tx.addEventListener('characteristicvaluechanged',e=>{
-   const s=new TextDecoder().decode(e.target.value);
-   if(s.startsWith('B|'))document.getElementById('bat').textContent='🔋 แบตพวงกุญแจ '+s.slice(2).trim()+'%';
+  if(!dev){dev=await navigator.bluetooth.requestDevice({filters:[{name:'TempoPin'}],optionalServices:[SVC]});dev.addEventListener('gattserverdisconnected',onDisc)}
+  await attach();await syncNow();
+ }catch(e){toast('เชื่อมต่อไม่สำเร็จ')}
+}
+async function attach(){
+ const svc=await(await dev.gatt.connect()).getPrimaryService(SVC);
+ rx=await svc.getCharacteristic(RXU);
+ const tx=await svc.getCharacteristic(TXU);await tx.startNotifications();
+ tx.addEventListener('characteristicvaluechanged',e=>{const m=new TextDecoder().decode(e.target.value).match(/B\|(\d+)/);if(m){bat=+m[1];renderConn()}});
+ renderConn();
+}
+function onDisc(){rx=null;renderConn();setTimeout(()=>{if(dev&&!rx)attach().then(syncNow).catch(()=>{})},3000)}
+function queueSync(){clearTimeout(syncTimer);syncTimer=setTimeout(()=>{if(rx)syncNow()},600)}
+function syncNow(){busy=busy.then(async()=>{if(!rx)return;
+ const d=new TextEncoder().encode(buildLines().join('\n')+'\n');
+ for(let i=0;i<d.length;i+=20)await rx.writeValueWithResponse(d.slice(i,i+20));
+ lastSync=new Date();renderConn();toast('ซิงก์กับพวงกุญแจแล้ว ✓')}).catch(()=>toast('ซิงก์ไม่สำเร็จ ลองใหม่'));return busy}
+function renderConn(){
+ const c=$('#conn');c.className='pill'+(rx?' on':'');c.innerHTML='<span class="dot"></span>'+(rx?'เชื่อมต่อแล้ว':'ยังไม่เชื่อมต่อ');
+ $('#connBtn').textContent=rx?'ซิงก์ตอนนี้':'เชื่อมต่อพวงกุญแจ';
+ $('#connInfo').textContent=(bat!==null?'🔋 แบตพวงกุญแจ '+bat+'%':'')+(lastSync?'  ·  ซิงก์ล่าสุด '+pad(lastSync.getHours())+':'+pad(lastSync.getMinutes()):'');
+}
+
+// ---------- หน้าจอ ----------
+function show(id){
+ document.querySelectorAll('.screen').forEach(e=>e.classList.add('hide'));$('#'+id).classList.remove('hide');
+ $('nav').classList.toggle('hide',id=='login');
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.s==id));
+ if(id=='profile')fillProf();renderAll();window.scrollTo(0,0);
+}
+function doLogin(){if(!$('#em').value){toast('กรอกอีเมลก่อนนะ');return}LS.set('tp_login',1);show(prof.name?'home':'profile')}
+function logout(){LS.set('tp_login',0);show('login')}
+const PF=['name','age','job','mode','travel','wake','sleep'];
+function fillProf(){PF.forEach(k=>{if(prof[k]!==undefined)$('#p_'+k).value=prof[k]});$('#c_data').checked=!!prof.cData;$('#c_loc').checked=!!prof.cLoc}
+function saveProf(){
+ if(!$('#c_data').checked){toast('ต้องยินยอมเก็บข้อมูลก่อนใช้งาน');return}
+ if(!$('#p_name').value.trim()){toast('ใส่ชื่อเล่นก่อนนะ');return}
+ PF.forEach(k=>prof[k]=$('#p_'+k).value);prof.cData=true;prof.cLoc=$('#c_loc').checked;
+ LS.set('tp_prof',prof);toast('บันทึกโปรไฟล์แล้ว');show('home');
+}
+function itemHTML(t,showDate){
+ const sub=[showDate?dayLbl(t.date):'',t.loc?'📍 '+esc(t.loc):'',trv(t)?'🚗 '+trv(t)+' นาที':'',PN[t.prio],WI[t.w]||''].filter(Boolean).join(' · ');
+ return '<div class="item" onclick="openForm(\''+t.id+'\')"><div class="bar" style="background:'+PC[t.prio]+'"></div><div class="tm">'+t.start+(t.end?'<br><span class="mut">'+t.end+'</span>':'')+
+ '</div><div class="tt">'+esc(t.title)+'<small>'+sub+'</small></div><button class="ib" onclick="event.stopPropagation();delTask(\''+t.id+'\')">✕</button></div>';
+}
+function renderHome(){
+ $('#hello').textContent='สวัสดี '+(prof.name||'');
+ $('#today').textContent=new Date().toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
+ const now=new Date(),n=sorted(tasks).find(t=>endD(t)>now);
+ if(n){const going=toD(n.date,n.start)<=now,lv=trv(n)?fmt(toMin(n.start)-trv(n)-(+n.lead||0)):'';
+  $('#nextCard').innerHTML='<div class="mut">'+(going?'กำลังทำอยู่':'งานถัดไป')+(n.date!=ds(now)?' · '+dayLbl(n.date):'')+'</div><div class="big">'+n.start+(n.end?'<span style="font-size:22px"> – '+n.end+'</span>':'')+
+  '</div><div style="font-size:19px">'+esc(n.title)+'</div>'+(lv&&!going?'<span class="tag">🚗 ควรออก '+lv+' น.</span>':'')+
+  (n.loc?'<span class="tag">📍 '+esc(n.loc)+'</span>':'')+'<span class="tag" style="color:'+(n.prio>=2?PC[n.prio]:'#fff')+'">'+PN[n.prio]+'</span>';
+ }else $('#nextCard').innerHTML='<div class="mut">ยังไม่มีงานถัดไป</div><div style="font-size:18px;margin-top:4px">บันทึกงาน หรือคุยกับผู้ช่วยได้เลย</div>';
+ const td=sorted(tasks.filter(t=>t.date==ds(now)));
+ $('#todayList').innerHTML=td.length?td.map(t=>itemHTML(t)).join(''):'<div class="mut">วันนี้ยังว่าง</div>';
+}
+function setView(v){view=v;renderSched()}
+function shift(n){cur.setDate(cur.getDate()+n*(view=='week'?7:1));renderSched()}
+function dayStats(date){
+ const l=sorted(tasks.filter(t=>t.date==date)),wake=prof.wake?toMin(prof.wake):420;let sleep=prof.sleep?toMin(prof.sleep):1410;if(sleep<wake)sleep+=1440;
+ const travel=l.reduce((a,t)=>a+trv(t),0),br=l.filter(t=>/พัก|break|wind/i.test(t.title)).length,last=l.length?Math.max(...l.map(endMin)):wake;
+ return{l,wake,sleep,travel,br,free:Math.max(0,sleep-last)};
+}
+function renderSched(){
+ $('#tDay').classList.toggle('on',view=='day');$('#tWeek').classList.toggle('on',view=='week');
+ if(view=='day'){
+  const date=ds(cur),s=dayStats(date);$('#rangeLbl').textContent=cur.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'short'});
+  let h='<div class="grid"><div class="stat"><span class="mut">งาน</span><b>'+s.l.length+'</b></div><div class="stat"><span class="mut">เดินทางรวม</span><b>'+dur(s.travel)+'</b></div>'+
+   '<div class="stat"><span class="mut">ช่วงพัก</span><b>'+s.br+'</b></div><div class="stat"><span class="mut">ว่างก่อนนอน</span><b>'+dur(s.free)+'</b></div></div>';
+  h+='<div class="card"><div class="tl"><div class="tlr gap">⏰ ตื่น '+fmt(s.wake)+'</div>';
+  s.l.forEach((t,i)=>{
+   h+='<div class="tlr" style="--c:'+PC[t.prio]+'" onclick="openForm(\''+t.id+'\')"><b>'+t.start+(t.end?' – '+t.end:'')+'</b> '+esc(t.title)+
+    '<div class="mut">'+[trv(t)?'ออกเดินทาง '+fmt(toMin(t.start)-trv(t)-(+t.lead||0)):'',t.loc?'📍 '+esc(t.loc):'',PN[t.prio],WI[t.w]||''].filter(Boolean).join(' · ')+'</div></div>';
+   const nx=s.l[i+1];if(nx){const g=toMin(nx.start)-trv(nx)-endMin(t);if(g>=20)h+='<div class="tlr gap">ว่าง '+dur(g)+'</div>';else if(g<0)h+='<div class="tlr gap" style="color:#a32d2d">⚠️ ชนกับงานถัดไป</div>'}
   });
-  st('เชื่อมต่อแล้ว ✓');
- }catch(e){st('ผิดพลาด: '+e.message)}
+  h+='<div class="tlr gap">🌙 นอน '+fmt(s.sleep)+'</div></div></div>';$('#schedBody').innerHTML=h;
+ }else{
+  const m=new Date(cur);m.setDate(m.getDate()-(m.getDay()+6)%7);const e=new Date(m);e.setDate(e.getDate()+6);
+  $('#rangeLbl').textContent=m.getDate()+' – '+e.toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+  let h='';for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const date=ds(d),l=sorted(tasks.filter(t=>t.date==date));
+   h+='<div class="day'+(date==ds(new Date())?' today':'')+'"><h3>'+dayLbl(date)+'</h3><div class="card" style="margin:4px 0;padding:4px 14px">'+(l.length?l.map(t=>itemHTML(t)).join(''):'<div class="mut" style="padding:10px 0">ว่าง</div>')+'</div></div>'}
+  $('#schedBody').innerHTML=h;
+ }
 }
-async function sendLines(lines){
- const data=new TextEncoder().encode(lines.join('\n')+'\n');
- for(let i=0;i<data.length;i+=20)await rx.writeValueWithResponse(data.slice(i,i+20));
+function renderAll(){renderHome();renderSched();renderConn()}
+
+// ---------- ฟอร์ม ----------
+function setPrio(p){formPrio=p;document.querySelectorAll('#f_prio button').forEach((b,i)=>{b.classList.toggle('on',i==p);b.style.background=i==p?PC[i]:''});$('#prepRow').classList.toggle('hide',p!=2)}
+function locToggle(){$('#travelRow').classList.toggle('hide',!$('#f_loc').value.trim());if(!$('#f_travel').value)$('#f_travel').value=prof.travel||20}
+function chip(t){$('#f_title').value=t;kcPreview()}
+function kcPreview(){const v=$('#f_title').value.trim();$('#kcLbl').textContent=v?'บนพวงกุญแจ: '+kc({title:v})+(toEn(v)?'':' (ใช้ชื่ออังกฤษจะแสดงได้ตรงกว่า)'):''}
+function openForm(id){
+ const t=id?tasks.find(x=>x.id==id):null;editId=t?t.id:null;
+ $('#formTitle').textContent=t?'แก้ไขงาน':'บันทึกงาน';$('#delBtn').classList.toggle('hide',!t);
+ $('#f_title').value=t?t.title:'';$('#f_date').value=t?t.date:ds(new Date());$('#f_start').value=t?t.start:'';$('#f_end').value=t?t.end:'';
+ $('#f_loc').value=t?t.loc:'';$('#f_travel').value=t?t.travel:'';$('#f_lead').value=t?t.lead:10;$('#f_w').value=t?t.w:'Sunny';
+ $('#f_note').value=t?t.note:'';$('#f_prep').checked=t?!!t.prep:false;setPrio(t?t.prio:1);locToggle();kcPreview();show('add');
 }
-async function demo(){
- if(!rx){st('ยังไม่ได้เชื่อมต่อ');return}
- const now=Math.floor(Date.now()/1000),tz=-new Date().getTimezoneOffset()*60,s=now+150;
- const lines=['T|'+now+'|'+tz,'C',
-  'A|'+s+'|'+(s+3600)+'|3|2|Rain|'+(now+15)+'|'+(now+45)+'|'+(now+90)+'|'+s+'|Meeting',
-  'A|'+(now+3600)+'|'+(now+5400)+'|1|0|Sunny|0|0|'+(now+3000)+'|'+(now+3600)+'|Class',
-  'A|'+(now+7200)+'|0|0|0|Cloudy|0|0|0|'+(now+7200)+'|Lunch','D'];
- try{await sendLines(lines);st('ส่งตารางแล้ว ✓ ดูพวงกุญแจ')}catch(e){st('ส่งไม่สำเร็จ: '+e.message)}
+function conflicts(t){const s=toMin(t.start)-trv(t),e=endMin(t);return tasks.filter(o=>o.id!=t.id&&o.date==t.date&&s<endMin(o)&&toMin(o.start)-trv(o)<e)}
+function saveForm(){
+ const t={id:editId||String(Date.now()),title:$('#f_title').value.trim(),date:$('#f_date').value,start:$('#f_start').value,end:$('#f_end').value,
+  loc:$('#f_loc').value.trim(),travel:+$('#f_travel').value||0,prio:formPrio,prep:$('#f_prep').checked,lead:+$('#f_lead').value||0,w:$('#f_w').value,note:$('#f_note').value};
+ if(!t.title||!t.date||!t.start){toast('ใส่ชื่องาน วันที่ และเวลาเริ่ม');return}
+ const c=conflicts(t);if(c.length&&!confirm('เวลาชนกับ "'+c[0].title+'" ('+c[0].start+') บันทึกต่อไหม?'))return;
+ tasks=tasks.filter(x=>x.id!=t.id);tasks.push(t);save();toast('บันทึกแล้ว');show('home');
 }
-</script></body></html>
+function delTask(id){const t=tasks.find(x=>x.id==id);if(!t||!confirm('ลบ "'+t.title+'"?'))return;tasks=tasks.filter(x=>x.id!=id);save();toast('ลบแล้ว')}
+
+// ---------- ผู้ช่วย ----------
+const DAYS=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+function detectDate(s){const d=new Date();
+ if(/มะรืน/.test(s)){d.setDate(d.getDate()+2);return ds(d)}if(/พรุ่งนี้/.test(s)){d.setDate(d.getDate()+1);return ds(d)}if(/วันนี้/.test(s))return ds(d);
+ for(let i=0;i<7;i++)if(s.includes(DAYS[i])){d.setDate(d.getDate()+((i-d.getDay()+7)%7));return ds(d)}return null}
+function parseTimes(s){let m;
+ if(m=s.match(/(\d{1,2})[:.](\d{2})\s*(?:-|–|ถึง)\s*(\d{1,2})[:.](\d{2})/))return[+m[1]*60+ +m[2],+m[3]*60+ +m[4],m[0]];
+ if(m=s.match(/(บ่าย\s*)?(\d{1,2})\s*(?:-|–|ถึง)\s*(\d{1,2})(?![\d:.]|\s*(?:นาที|min))/)){let a=+m[2],b=+m[3];if(m[1]||a<7)a+=a<12?12:0;if(b<=a%12&&b<12||b<7)b+=12;return[a*60,b*60,m[0]]}
+ if(m=s.match(/(\d{1,2})[:.](\d{2})/))return[+m[1]*60+ +m[2],null,m[0]];
+ if(m=s.match(/บ่าย\s*(\d{1,2})(\s*โมง)?/))return[((+m[1]%12)+12)*60,null,m[0]];
+ if(m=s.match(/(\d{1,2})\s*ทุ่ม/))return[(+m[1]+18)*60,null,m[0]];
+ if(m=s.match(/(\d{1,2})\s*โมง\s*(เช้า|เย็น)?/)){let h=+m[1];if(m[2]=='เย็น'&&h<12)h+=12;return[h*60,null,m[0]]}
+ return null}
+const PR=[[/สอบ|exam|ส่งงาน|deadline|สัมภาษณ์|interview|พรีเซนต์|present/i,3,'กำหนดเวลาตายตัว พลาดแล้วกระทบมาก'],
+ [/ประชุม|meeting|เรียน|class|นัด|หมอ|doctor|ติว/i,2,'มีคนอื่นรอหรือมีเวลาตายตัว'],
+ [/กินข้าว|ข้าว|lunch|ยิม|gym|ออกกำลัง|วิ่ง|ซื้อของ|พัก|break/i,0,'ยืดหยุ่น เลื่อนได้']];
+function suggestPrio(s){if(/สำคัญมาก|ด่วนมาก|ห้ามพลาด/.test(s))return[3,'คุณระบุว่าสำคัญมาก'];if(/สำคัญ|ด่วน/.test(s))return[2,'คุณระบุว่าสำคัญ'];
+ for(const[r,p,why]of PR)if(r.test(s))return[p,why];return[1,'งานทั่วไป']}
+function parseSeg(seg,defDate){
+ const tm=parseTimes(seg);if(!tm||tm[0]>=1440)return null;
+ let rest=seg.replace(tm[2],' '),travel=null,loc='';
+ const tr=rest.match(/(?:เดินทาง\s*)?(\d+)\s*(นาที|min)/i);if(tr){travel=+tr[1];rest=rest.replace(tr[0],' ')}
+ const lm=rest.match(/ที่\s*([^,]+)$/);if(lm){loc=lm[1].replace(/สำคัญมาก|สำคัญ|ด่วน(มาก)?|ฝนตก|ฝน/g,'').trim().slice(0,30);rest=rest.replace(lm[0],' ')}
+ let title=null;for(const[th]of TH)if(rest.includes(th)){title=th;break}
+ if(!title)title=rest.replace(/พรุ่งนี้|มะรืน(นี้)?|วันนี้|วัน|สำคัญมาก|สำคัญ|ด่วน(มาก)?|ห้ามพลาด|ฝนตก|มีเมฆ/g,'').replace(new RegExp(DAYS.join('|'),'g'),'').replace(/\s+/g,' ').trim().slice(0,40)||'งาน';
+ const[prio,why]=suggestPrio(seg);let date=detectDate(seg)||defDate;
+ if(!date){date=ds(new Date());if(tm[0]<new Date().getHours()*60+new Date().getMinutes())date=ds(new Date(Date.now()+864e5))}
+ return{date,start:fmt(tm[0]),end:tm[1]!==null?fmt(tm[1]):'',title,loc,travel:loc?(travel??(+prof.travel||20)):0,prio,why,prep:false,lead:10,
+  w:/ฝน|rain/i.test(seg)?'Rain':/เมฆ|cloud/i.test(seg)?'Cloudy':'Sunny',note:''};
+}
+function suggestBreaks(date){
+ const s=dayStats(date),out=[],busyR=s.l.map(t=>[toMin(t.start)-trv(t),endMin(t)]),free=(a,b)=>busyR.every(([x,y])=>b<=x||a>=y);
+ const nowM=date==ds(new Date())?new Date().getHours()*60+new Date().getMinutes():0;
+ s.l.forEach(t=>{const e=endMin(t),len=e-toMin(t.start);if(len>=90&&e>=nowM&&e+15<=s.sleep&&free(e,e+15))out.push({start:fmt(e),end:fmt(e+15),title:'พัก',why:'ทำงานต่อเนื่อง '+dur(len)+' ควรพักสายตา'})});
+ if(!s.l.some(t=>/ข้าว|lunch|อาหาร/i.test(t.title))&&free(720,765)&&765>nowM)out.push({start:'12:00',end:'12:45',title:'กินข้าว',why:'ยังไม่มีเวลาพักกลางวั
