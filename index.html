@@ -156,7 +156,7 @@ function alertsOf(t){
  const a0=(t.prio==3||(t.prio==2&&t.prep))?(a1||a2||s)-1800:0;
  return[a0,a1,a2,a3];
 }
-
+const asc=(s,n)=>(s||'').replace(/[^\x20-\x7E]|\|/g,'').replace(/\s+/g,' ').trim().slice(0,n);
 function buildLines(){
  const now=Math.floor(Date.now()/1000),tz=-new Date().getTimezoneOffset()*60,from=ep(toD(ds(new Date()),'00:00'));
  const l=['T|'+now+'|'+tz,'C'];
@@ -190,7 +190,7 @@ function queueSync(){clearTimeout(syncTimer);syncTimer=setTimeout(()=>{if(rx)syn
 function syncNow(){busy=busy.then(async()=>{if(!rx)return;
  const d=new TextEncoder().encode(buildLines().join('\n')+'\n');
  for(let i=0;i<d.length;i+=20)await rx.writeValueWithResponse(d.slice(i,i+20));
- lastSync=new Date();renderConn();toast('ซิงก์กับพวงกุญแจแล้ว ✓')}).catch(()=>toast('ซิงก์ไม่สำเร็จ ลองใหม่'));return busy}
+ lastSync=new Date();renderConn();toast('ซิงก์กับพวงกุญแจแล้ว ✓')}).catch(e=>{toast('ซิงก์ไม่สำเร็จ: '+((e&&e.message)||e));rx=null;renderConn();try{if(dev&&dev.gatt.connected)dev.gatt.disconnect()}catch(x){}});return busy}
 function renderConn(){
  const c=$('#conn');c.className='pill'+(rx?' on':'');c.innerHTML='<span class="dot"></span>'+(rx?'เชื่อมต่อแล้ว':'ยังไม่เชื่อมต่อ');
  $('#connBtn').textContent=rx?'ซิงก์ตอนนี้':'เชื่อมต่อพวงกุญแจ';
