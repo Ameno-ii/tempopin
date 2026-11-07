@@ -203,7 +203,7 @@ function show(id){
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.s==id));
  if(id=='profile')fillProf();renderAll();window.scrollTo(0,0);
 }
-function doLogin(){LS.set('tp_login',1);show(prof.name?'home':'profile')}
+function doLogin(){if(!$('#em').value){toast('กรอกอีเมลก่อนนะ');return}LS.set('tp_login',1);show(prof.name?'home':'profile')}
 function logout(){LS.set('tp_login',0);show('login')}
 const PF=['name','age','job','mode','travel','wake','sleep'];
 function fillProf(){PF.forEach(k=>{if(prof[k]!==undefined)$('#p_'+k).value=prof[k]});$('#c_data').checked=!!prof.cData;$('#c_loc').checked=!!prof.cLoc}
@@ -309,11 +309,42 @@ function parseSeg(seg,defDate){
  if(!title)title=rest.replace(/พรุ่งนี้|มะรืน(นี้)?|วันนี้|วัน|สำคัญมาก|สำคัญ|ด่วน(มาก)?|ห้ามพลาด|ฝนตก|มีเมฆ/g,'').replace(new RegExp(DAYS.join('|'),'g'),'').replace(/\s+/g,' ').trim().slice(0,40)||'งาน';
  const[prio,why]=suggestPrio(seg);let date=detectDate(seg)||defDate;
  if(!date){date=ds(new Date());if(tm[0]<new Date().getHours()*60+new Date().getMinutes())date=ds(new Date(Date.now()+864e5))}
- return{date,start:fmt(tm[0]),end:tm[1]!==null?fmt(tm[1]):'',title,loc,travel:loc?(travel!==null?travel:(+prof.travel||20)):0,prio,why,prep:false,lead:10,
+ return{date,start:fmt(tm[0]),end:tm[1]!==null?fmt(tm[1]):'',title,loc,travel:loc?(travel??(+prof.travel||20)):0,prio,why,prep:false,lead:10,
   w:/ฝน|rain/i.test(seg)?'Rain':/เมฆ|cloud/i.test(seg)?'Cloudy':'Sunny',note:''};
 }
 function suggestBreaks(date){
  const s=dayStats(date),out=[],busyR=s.l.map(t=>[toMin(t.start)-trv(t),endMin(t)]),free=(a,b)=>busyR.every(([x,y])=>b<=x||a>=y);
  const nowM=date==ds(new Date())?new Date().getHours()*60+new Date().getMinutes():0;
  s.l.forEach(t=>{const e=endMin(t),len=e-toMin(t.start);if(len>=90&&e>=nowM&&e+15<=s.sleep&&free(e,e+15))out.push({start:fmt(e),end:fmt(e+15),title:'พัก',why:'ทำงานต่อเนื่อง '+dur(len)+' ควรพักสายตา'})});
- if(!s.l.some(t=>/ข้าว|lunch|อาหาร/i.test(t.title))&&free(720,765)&&765>nowM)out.push({start:'12:00',end:'12:45',title:'กินข้าว',why:'ยังไม่มีเวลาพักกลางวั
+ if(!s.l.some(t=>/ข้าว|lunch|อาหาร/i.test(t.title))&&free(720,765)&&765>nowM)out.push({start:'12:00',end:'12:45',title:'กินข้าว',why:'ยังไม่มีเวลาพักกลางวัน'});
+ if(s.sleep-30>nowM&&free(s.sleep-30,s.sleep))out.push({start:fmt(s.sleep-30),end:fmt(s.sleep),title:'Wind down',why:'ผ่อนคลายก่อนนอนตามเวลาที่ตั้งไว้'});
+ return out.slice(0,4).map(x=>({...x,date,loc:'',travel:0,prio:0,prep:false,lead:5,w:'Sunny',note:''}));
+}
+function bubble(html,me){const d=document.createElement('div');d.className='msg '+(me?'me':'bot');d.innerHTML=html;$('#msgs').appendChild(d);setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),50);return d}
+function send(){const m=$('#ci').value.trim();if(!m)return;$('#ci').value='';bubble(esc(m),true);setTimeout(()=>reply(m),450)}
+function reply(m){
+ const defDate=detectDate(m);
+ if(/พัก|เบรก|break|จัดตาราง|แนะนำ/i.test(m)&&!parseTimes(m)){
+  const date=defDate||ds(new Date()),s=suggestBreaks(date),c=dayStats(date).l.filter(t=>conflicts(t).length);
+  if(c.length)bubble('⚠️ '+dayLbl(date)+' มีงานเวลาชนกัน: '+c.map(t=>esc(t.title)+' '+t.start).join(', '));
+  if(!s.length){bubble('ตาราง'+dayLbl(date)+'ดูสมดุลดีแล้ว ไม่ต้องแทรกเวลาพักเพิ่มครับ');return}
+  offer('ดูจากตาราง'+dayLbl(date)+'และเวลานอนของคุณ แนะนำแบบนี้ครับ',s);return}
+ const items=m.split(/\n|,|，| และ | แล้วก็ /).map(x=>parseSeg(x,defDate)).filter(Boolean);
+ if(!items.length){bubble('ลองพิมพ์แบบนี้ครับ<br><b>พรุ่งนี้ประชุม 9-12 ที่ตึกวิศวะ, สอบบ่าย 2 สำคัญมาก</b><br>หรือ <b>แนะนำเวลาพัก</b>');return}
+ offer(items.length>1?'เจอ '+items.length+' งาน พร้อมแนะนำความสำคัญให้ครับ':'เข้าใจแบบนี้ ถูกไหมครับ',items);
+}
+function offer(text,items){
+ const b=bubble(text),ks=[];
+ items.forEach(it=>{const k=pending.push(it)-1;ks.push(k);const s=document.createElement('div');s.className='sug';s.style.setProperty('--c',PC[it.prio]);
+  const c=conflicts({...it,id:'_'});
+  s.innerHTML='<div><b>'+it.start+(it.end?'–'+it.end:'')+'</b> '+esc(it.title)+' <span class="mut">'+dayLbl(it.date)+'</span><div class="mut">'+
+  [it.loc?'📍 '+esc(it.loc):'',it.travel?'🚗 '+it.travel+' นาที':'',PN[it.prio]+(it.why?' — '+esc(it.why):'')].filter(Boolean).join(' · ')+
+  (c.length?'<br><span style="color:#a32d2d">⚠️ ชนกับ '+esc(c[0].title)+' '+c[0].start+'</span>':'')+'</div></div><button class="ib" id="pb'+k+'" onclick="addOne('+k+')">เพิ่ม</button>';b.appendChild(s)});
+ if(items.length>1){const a=document.createElement('button');a.className='btn';a.textContent='เพิ่มทั้งหมดลงตาราง';a.onclick=()=>{ks.forEach(addOne);a.disabled=true;a.textContent='✓ เพิ่มแล้ว'};b.appendChild(a)}
+}
+function addOne(k){const it=pending[k];if(it.done)return;it.done=1;const{why,done,...t}=it;tasks.push({...t,id:String(Date.now())+k});save();const b=$('#pb'+k);if(b){b.textContent='✓';b.disabled=true}toast('เพิ่มลงตารางแล้ว')}
+
+bubble('สวัสดีครับ 👋 พิมพ์งานมาได้เลย เช่น<br><b>พรุ่งนี้ประชุม 9-12 ที่ตึกวิศวะ, สอบบ่าย 2 สำคัญมาก</b><br>หรือพิมพ์ <b>แนะนำเวลาพัก</b> ให้ผมช่วยดูตาราง');
+show(LS.get('tp_login',0)?(prof.name?'home':'profile'):'login');
+setInterval(()=>{renderHome();if(rx)syncNow()},5*60*1000);
+</script></body></html>
