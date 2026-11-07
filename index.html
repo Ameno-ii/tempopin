@@ -156,12 +156,13 @@ function alertsOf(t){
  const a0=(t.prio==3||(t.prio==2&&t.prep))?(a1||a2||s)-1800:0;
  return[a0,a1,a2,a3];
 }
+
 function buildLines(){
  const now=Math.floor(Date.now()/1000),tz=-new Date().getTimezoneOffset()*60,from=ep(toD(ds(new Date()),'00:00'));
  const l=['T|'+now+'|'+tz,'C'];
  sorted(tasks).filter(t=>{const s=ep(toD(t.date,t.start));return s>=from&&s<now+86400}).slice(0,20).forEach(t=>{
   const s=ep(toD(t.date,t.start)),e=t.end?ep(endD(t)):0,a=alertsOf(t);
-  l.push(['A',s,e,t.prio,trv(t),t.w,a[0],a[1],a[2],a[3],kc(t)].join('|'));
+  l.push(['A',s,e,t.prio,trv(t),t.w,a[0],a[1],a[2],a[3],asc(t.loc,19),asc(t.note,38),kc(t)].join('|'));
  });
  l.push('D');return l;
 }
