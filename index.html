@@ -203,7 +203,7 @@ function show(id){
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.s==id));
  if(id=='profile')fillProf();renderAll();window.scrollTo(0,0);
 }
-function doLogin(){if(!$('#em').value){toast('กรอกอีเมลก่อนนะ');return}LS.set('tp_login',1);show(prof.name?'home':'profile')}
+function doLogin(){LS.set('tp_login',1);show(prof.name?'home':'profile')}
 function logout(){LS.set('tp_login',0);show('login')}
 const PF=['name','age','job','mode','travel','wake','sleep'];
 function fillProf(){PF.forEach(k=>{if(prof[k]!==undefined)$('#p_'+k).value=prof[k]});$('#c_data').checked=!!prof.cData;$('#c_loc').checked=!!prof.cLoc}
@@ -309,7 +309,7 @@ function parseSeg(seg,defDate){
  if(!title)title=rest.replace(/พรุ่งนี้|มะรืน(นี้)?|วันนี้|วัน|สำคัญมาก|สำคัญ|ด่วน(มาก)?|ห้ามพลาด|ฝนตก|มีเมฆ/g,'').replace(new RegExp(DAYS.join('|'),'g'),'').replace(/\s+/g,' ').trim().slice(0,40)||'งาน';
  const[prio,why]=suggestPrio(seg);let date=detectDate(seg)||defDate;
  if(!date){date=ds(new Date());if(tm[0]<new Date().getHours()*60+new Date().getMinutes())date=ds(new Date(Date.now()+864e5))}
- return{date,start:fmt(tm[0]),end:tm[1]!==null?fmt(tm[1]):'',title,loc,travel:loc?(travel??(+prof.travel||20)):0,prio,why,prep:false,lead:10,
+ return{date,start:fmt(tm[0]),end:tm[1]!==null?fmt(tm[1]):'',title,loc,travel:loc?(travel!==null?travel:(+prof.travel||20)):0,prio,why,prep:false,lead:10,
   w:/ฝน|rain/i.test(seg)?'Rain':/เมฆ|cloud/i.test(seg)?'Cloudy':'Sunny',note:''};
 }
 function suggestBreaks(date){
