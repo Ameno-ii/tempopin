@@ -135,7 +135,7 @@ const ep=d=>Math.floor(d.getTime()/1000);
 const toMin=hm=>{const a=hm.split(':');return +a[0]*60+ +a[1]};
 const fmt=m=>{m=((m%1440)+1440)%1440;return pad(Math.floor(m/60))+':'+pad(m%60)};
 const dur=m=>m>=60?Math.floor(m/60)+' ชม.'+(m%60?' '+m%60+' น.':''):m+' นาที';
-const endMin=t=>t.end?toMin(t.end)+(toMin(t.end)<=toMin(t.start)?1440:0):toMin(t.start)+60;
+const endMin=t=>t.end?toMin(t.end)+(toMin(t.end)<=toMin(t.start)?1440:0):toMin(t.start);
 const endD=t=>new Date(toD(t.date,t.start).getTime()+(endMin(t)-toMin(t.start))*60000);
 const trv=t=>t.loc?(+t.travel||0):0;
 const sorted=l=>l.slice().sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
@@ -272,7 +272,7 @@ function openForm(id){
  $('#f_loc').value=t?t.loc:'';$('#f_travel').value=t?t.travel:'';$('#f_lead').value=t?t.lead:10;$('#f_w').value=t?t.w:'Sunny';
  $('#f_note').value=t?t.note:'';$('#f_prep').checked=t?!!t.prep:false;setPrio(t?t.prio:1);locToggle();kcPreview();show('add');
 }
-function conflicts(t){const s=toMin(t.start)-trv(t),e=endMin(t);return tasks.filter(o=>o.id!=t.id&&o.date==t.date&&s<endMin(o)&&toMin(o.start)-trv(o)<e)}
+function conflicts(t){const s=toMin(t.start)-trv(t),e=endMin(t);return tasks.filter(o=>o.id!=t.id&&o.date==t.date&&(o.start==t.start||(s<endMin(o)&&toMin(o.start)-trv(o)<e)))}
 function saveForm(){
  const t={id:editId||String(Date.now()),title:$('#f_title').value.trim(),date:$('#f_date').value,start:$('#f_start').value,end:$('#f_end').value,
   loc:$('#f_loc').value.trim(),travel:+$('#f_travel').value||0,prio:formPrio,prep:$('#f_prep').checked,lead:+$('#f_lead').value||0,w:$('#f_w').value,note:$('#f_note').value};
